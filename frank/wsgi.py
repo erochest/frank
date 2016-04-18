@@ -12,7 +12,7 @@ app = Flask(__name__)
 @app.route('/')
 def main():
     """The root page."""
-    return "Greetings, earthling."
+    return "It's alive!"
 
 
 if __name__ == '__main__':
