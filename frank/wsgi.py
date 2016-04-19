@@ -1,4 +1,4 @@
-from frank import create_app
+from frank.app import create_app
 
 
 app_info = create_app()
