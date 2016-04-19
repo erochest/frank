@@ -15,7 +15,8 @@ def step_impl(context):
 
 @when ("I select the answer from the database")
 def step_impl(context):
-    context.answer = context.db.session.execute(text('SELECT 42;'), {})
+    with context.app.app_context():
+        context.answer = context.db.session.execute(text('SELECT 42;'), {})
     assert context.answer
 
 

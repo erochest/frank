@@ -5,23 +5,26 @@
 
 from flask import Flask
 from flask.ext.heroku import Heroku
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
-
-# from frank import db
 
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-heroku = Heroku(app)
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+    from frank.model import db, migrate
+    db.init_app(app)
 
+    heroku = Heroku()
+    heroku.init_app(app)
 
-@app.route('/')
-def homepage():
-    """The root page."""
-    n = list(db.session.execute(text('SELECT RANDOM();'), {}))[0][0]
-    return "It's alive!\n" + str(n) + "\n"
+    migrate.init_app(app, db)
+
+    from frank.views.home import homepage
+    app.register_blueprint(homepage)
+
+    return {
+        'app': app,
+        'heroku': heroku,
+        'db': db,
+        'migrate': migrate,
+    }
