@@ -43,8 +43,19 @@ def deploy(branch=None, to='master', keep=False, heroku_app=HEROKU_APP):
     if not keep:
         subprocess.run(['git', 'branch', '--delete', branch])
     subprocess.run(['git', 'push'])
+
+    heroku_migrate(heroku_app)
+
+
+@manager.command
+def heroku_migrate(heroku_app=HEROKU_APP):
+    """This migrates the database on the server and restarts the app."""
     subprocess.run([
-        'heroku', 'run', '--app', heroku_app, '--',
+        'heroku', 'run',
+        '--app', heroku_app,
+        '--env', 'PYTHON_PATH=/app',
+        '--exit-code',
+        '--',
         'python', '-m', 'frank.manage', 'db', 'upgrade',
     ])
     subprocess.run(['heroku', 'restart', '--app', heroku_app])
