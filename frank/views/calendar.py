@@ -6,7 +6,7 @@ from frank.model import db
 calendar = Blueprint('calendar', __name__)
 
 
-@calendar.route('/invites/incoming')
+@calendar.route('/invites/incoming', methods=['POST'])
 def invites_incoming():
     import pprint
     pprint.pprint(request.form)
