@@ -1,9 +1,21 @@
+from flask import url_for
 from behave import *
 
 
 @when('I send him a meeting invitation')
 def step_impl(context):
-    raise NotImplementedError
+    with context.app.app_context():
+        context.client.post(
+            url_for('frank.views.calendar.invites_incoming'),
+            data={
+                'envelope': None,
+                'headers': None,
+                'plain': None,
+                'html': None,
+                'reply_plain': None,
+                'attachments': None,
+            },
+        )
 
 
 @when('I send him a meeting invitation with {userid} in the {location}')
