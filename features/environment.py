@@ -5,7 +5,7 @@ import os
 
 from flask import current_app
 
-from frank import wsgi
+from frank import app as wsgi
 
 
 def before_all(context):
