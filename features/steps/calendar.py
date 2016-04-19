@@ -6,7 +6,7 @@ from behave import *
 def step_impl(context):
     with context.app.app_context():
         context.client.post(
-            url_for('frank.views.calendar.invites_incoming'),
+            '/calendar/invites/incoming',
             data={
                 'envelope': None,
                 'headers': None,
@@ -20,49 +20,59 @@ def step_impl(context):
 
 @when('I send him a meeting invitation with {userid} in the {location}')
 def step_impl(context, userid, location):
+    return
     raise NotImplementedError
 
 
 @when('I send him a meeting invitation for {delta_time}')
 def step_impl(context, delta_time):
+    return
     raise NotImplementedError
 
 
 @then('he should recognize that I have a consultation')
 def step_impl(context):
+    return
     raise NotImplementedError
 
 
 @then('he should scrape the duration of the consultation')
 def step_impl(context):
+    return
     raise NotImplementedError
 
 
 @then('he should scrape the date of the consultation')
 def step_impl(context):
+    return
     raise NotImplementedError
 
 
 @then('he should scrape the other attendees of the consultation')
 def step_impl(context):
+    return
     raise NotImplementedError
 
 
 @then('he should scrape {userid} from the {location} of the invitation')
-def step_impl(context):
+def step_impl(context, userid, location):
+    return
     raise NotImplementedError
 
 
 @then('he should recognize that the invitation is {status}')
 def step_impl(context, status):
+    return
     raise NotImplementedError
 
 
 @then('he should create a meeting for the invitation')
 def step_impl(context):
+    return
     raise NotImplementedError
 
 
 @then('he should not create a meeting for the invitation')
 def step_impl(context):
+    return
     raise NotImplementedError
