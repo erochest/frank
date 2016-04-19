@@ -1,11 +1,15 @@
+alembic==0.8.6
 behave==1.2.5
 flake8==2.5.4
 Flask==0.10.1
 flask-heroku==0.1.9
+Flask-Migrate==1.8.0
+Flask-Script==2.0.5
 Flask-SQLAlchemy==2.1
 gunicorn==19.4.5
 itsdangerous==0.24
 Jinja2==2.8
+Mako==1.0.4
 MarkupSafe==0.23
 mccabe==0.4.0
 parse==1.6.6
@@ -13,6 +17,7 @@ parse-type==0.3.4
 pep8==1.7.0
 psycopg2==2.6.1
 pyflakes==1.0.0
+python-editor==1.0
 six==1.10.0
 SQLAlchemy==1.0.12
 Werkzeug==0.11.8
