@@ -6,7 +6,7 @@ import subprocess
 from flask.ext.script import Manager
 from flask_migrate import MigrateCommand
 
-from frank.wsgi import create_app
+from frank.app import create_app
 
 
 HEROKU_APP = 'frankensystem'
