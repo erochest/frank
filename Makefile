@@ -10,6 +10,7 @@ freeze:
 
 deploy:
 	BRANCH=`git branch | grep '*' | cut -f 2 -d ' '` && git checkout master && git merge $$BRANCH && git branch --delete $$BRANCH
+	git push
 	heroku run --app $(HEROKU_APP) -- python -m frank.wsgi db migrate
 	heroku restart --app $(HEROKU_APP)
 
