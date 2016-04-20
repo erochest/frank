@@ -8,6 +8,4 @@ calendar = Blueprint('calendar', __name__)
 
 @calendar.route('/invites/incoming', methods=['POST'])
 def invites_incoming():
-    import pprint
-    pprint.pprint(request.form)
     return json.jsonify(status=1)
