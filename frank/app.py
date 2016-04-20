@@ -11,12 +11,10 @@ def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    heroku = Heroku(app)
+
     from frank.model import db, migrate
     db.init_app(app)
-
-    heroku = Heroku()
-    heroku.init_app(app)
-
     migrate.init_app(app, db)
 
     from frank.views.home import homepage

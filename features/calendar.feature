@@ -63,3 +63,5 @@ Feature: As a SLab staff-person
     And I visit the invitation's page
     Then I should see that the invitation is pending
     And I should not see a link to a consultation
+
+# TODO: recurring appointments
