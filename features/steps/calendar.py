@@ -48,36 +48,6 @@ def post_email(
         )
 
 
-def post_email(
-    context, from_email, to_emails, subject, body, datetime, duration
-):
-    data = {
-        'envelope[from]': from_email,
-        'headers[Subject]': subject,
-        'plain': 'When: {} {}-{}. '
-                 '(UTC-05:00) Eastern Time (US & Canada)\n'
-                 'Where: Elsewhere\n'
-                 '\n'
-                 '*~*~*~*~*~*~*~*~*~*\n'
-                 '\n'
-                 '{}\n'
-                 '\n'
-                 '\n'.format(
-                     datetime.strftime('%A, %B %d, %Y'),
-                     datetime.strftime('%I:%M %p'),
-                     (datetime + duration).strftime('%I:%M %p'),
-                     body,
-                 ),
-        'reply_plain': '',
-    }
-    for i, to in enumerate(to_emails):
-        key = 'envelope[recipients][{}]'.format(i)
-        data[key] = to
-
-    with context.app.app_context():
-        context.client.post('/calendar/invites/incoming', data=data)
-
-
 @when('I send him a meeting invitation')
 def step_impl(context):
     post_email(
