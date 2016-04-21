@@ -119,10 +119,15 @@ def invites_incoming():
         meeting_date, duration = parse_when(body)
         attendees += read_attendee(attendee_set, profiles, subject) \
             + read_attendee(attendee_set, profiles, body)
+        if meeting_date < datetime.datetime.now(meeting_date.tzinfo):
+            status = 1
+        else:
+            status = 0
 
         invitation = Invitation(
             subject=subject,
             body=body,
+            status=status,
             meeting_date=meeting_date,
             duration=round(duration.total_seconds() / 60.0),
             owner=owner,
