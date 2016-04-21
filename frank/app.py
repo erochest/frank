@@ -5,6 +5,7 @@
 
 from flask import Flask
 from flask.ext.heroku import Heroku
+from flask_humanize import Humanize
 
 
 def create_app():
@@ -12,6 +13,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     heroku = Heroku(app)
+    humanize = Humanize(app)
 
     from frank.model import db, migrate
     db.init_app(app)
@@ -25,6 +27,7 @@ def create_app():
     return {
         'app': app,
         'heroku': heroku,
+        'humanize': humanize,
         'db': db,
         'migrate': migrate,
     }

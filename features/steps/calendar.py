@@ -43,7 +43,9 @@ def post_email(
     with context.app.app_context():
         response = context.client.post('/calendar/invites/incoming', data=data)
         context.post_email['response'] = response
-        assert response.status_code == 200
+        assert response.status_code == 200, 'status = [{}] {}'.format(
+            response.status_code, response.status,
+        )
 
 
 @when('I send him a meeting invitation')
@@ -66,11 +68,11 @@ def step_impl(context):
 @when('I send him a meeting invitation with {userid} in the {location}')
 def step_impl(context, userid, location):
     if location == 'title':
-        subject = 'Meeting with {}'.format(userid)
+        subject = 'Meeting with {}@'.format(userid)
         body = ''
     else:
         subject = 'Meeting'
-        body = 'Meeting with {}'.format(userid)
+        body = 'Meeting with {}@ and others'.format(userid)
 
     post_email(
         context,
@@ -131,74 +133,73 @@ def step_impl(context, userid):
 @when('I visit the invitation\'s page')
 def step_impl(context):
     data = json.loads(context.post_email['response'].data)
-    response = context.client.get('/calendar/invites/{id}/'.format(**data))
+    url = '/calendar/invites/{id}'.format(**data)
+    response = context.client.get(url)
     context.post_email['response'] = response
-    assert response.status_code == 200
+    assert response.status_code == 200, '<{}> status = [{}] {}'.format(
+        url, response.status_code, response.status,
+    )
 
 
 @then('I should see my consultation')
 def step_impl(context):
     subject = context.post_email['subject']
-    response = context.post_data['response']
-    assert subject in response.data
+    response = context.post_email['response']
+    assert subject in response.data.decode('utf8')
 
 
 @then('I should see the duration of the consultation')
 def step_impl(context):
     duration = context.post_email['duration']
-    response = context.post_data['response']
-    assert humanize.naturaltime(duration) in response.data
+    response = context.post_email['response']
+    assert humanize.naturaltime(duration) in response.data.decode('utf8')
 
 
 @then('I should see the date of the consultation')
 def step_impl(context):
     start_time = context.post_email['start_time']
     response = context.post_email['response']
-    assert humanize.naturalday(start_time) in response.data
+    assert humanize.naturalday(start_time) in response.data.decode('utf8')
 
 
-@then('I should see {userid} as the consultant')
+@then('I should see {userid} as the meeting owner')
 def step_impl(context, userid):
     soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
-    assert userid in ' '.join(soup.select('#consultant').strings)
+    strings = []
+    for consultant in soup.select('#owner'):
+        strings += consultant.strings
+    assert userid in ' '.join(strings)
 
 
 @then('I should see the other attendees of the consultation')
 def step_impl(context):
     tos = [email.split('@')[0] for email in context.post_email['to']]
-    data = context.post_email['response'].data
+    data = context.post_email['response'].data.decode('utf8')
     assert all(t in data for t in tos)
 
 
 @then('I should see {userid} as an attendee')
 def step_impl(context, userid):
     soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
-    assert userid in ' '.join(soup.select('#attendees').strings)
+    strings = []
+    for attendees in soup.select('#attendees'):
+        strings += attendees.strings
+    assert userid in ' '.join(strings)
 
 
 @then('I should not see {userid} as an attendee')
 def step_impl(context, userid):
     soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
-    assert userid not in ' '.join(soup.select('#attendees').strings)
+    strings = []
+    for attendees in soup.select('#attendees'):
+        strings += attendees.strings
+    assert userid not in ' '.join(strings)
 
 
 @then('I should see that the invitation is {status}')
 def step_impl(context, status):
     soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
-    assert status in ' '.join(soup.select('#status').strings)
-
-
-@then('I should see a link to a consultation')
-def step_impl(context):
-    soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
-    assert any(
-        'Consultation' in ' '.join(a.strings) for a in soup.find_all('a')
-    )
-
-
-@then('I should not see a link to a consultation')
-def step_impl(context):
-    soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
-    assert not any(
-        'Consultation' in ' '.join(a.strings) for a in soup.find_all('a')
-    )
+    strings = []
+    for status_tag in soup.select('#status'):
+        strings += status_tag.strings
+    assert status in ' '.join(strings)
