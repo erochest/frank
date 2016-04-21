@@ -1,4 +1,5 @@
 import datetime
+import email.utils
 import re
 import sys
 
@@ -58,18 +59,10 @@ def add_profile(profile_index, userid):
 def read_recipients(form, index):
     """This reads all the envelope[recipients][N] entries from the form."""
     attendees = []
-    i = 0
-
-    while True:
-        key = 'envelope[recipients][{}]'.format(i)
-        address = form.get(key)
-        if address is None:
-            break
-
+    to_emails = email.utils.getaddresses(form.get('headers[To]', '').split(','))
+    for _, address in to_emails:
         userid = address.split('@')[0]
-        recipient = add_profile(index, userid)
-        attendees.append(recipient)
-        i += 1
+        attendees.append(add_profile(index, userid))
 
     return attendees
 

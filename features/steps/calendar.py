@@ -7,11 +7,12 @@ import humanize
 
 
 def post_email(
-    context, from_email, to_emails, subject, body, datetime, duration
+    context, from_email, to_emails, userids, subject, body, datetime, duration
 ):
     data = {
         'envelope[from]': from_email,
         'headers[Subject]': subject,
+        'headers[To]': ', '.join(to_emails),
         'plain': 'When: {} {}-{}. '
                  '(UTC-05:00) Eastern Time (US & Canada)\n'
                  'Where: Elsewhere\n'
@@ -30,15 +31,12 @@ def post_email(
     }
     context.post_email = {
         'from': from_email,
-        'to': to_emails,
+        'to': userids,
         'subject': subject,
         'body': body,
         'start_time': datetime,
         'duration': duration,
     }
-    for i, to in enumerate(to_emails):
-        key = 'envelope[recipients][{}]'.format(i)
-        data[key] = to
 
     with context.app.app_context():
         response = context.client.post('/calendar/invites/incoming', data=data)
@@ -55,9 +53,10 @@ def step_impl(context):
         'err8n@eservices.virginia.edu',
         [
             'frankbot@cloudmailin.com',
-            'lam2c@virginia.edu',
-            'rag9b@virginia.edu',
+            '"Davis Ferrell" <daf2c@virginia.edu>',
+            '"Guinevere Aguilar" <gva9b@eservices.virginia.edu>',
         ],
+        ['daf2c', 'gva9b'],
         'This is the subject',
         '',
         datetime.datetime.now(),
@@ -79,9 +78,10 @@ def step_impl(context, userid, location):
         'err8n@eservices.virginia.edu',
         [
             'frankbot@cloudmailin.com',
-            'lam2c@virginia.edu',
-            'rag9b@virginia.edu',
+            '"Davis Ferrell" <daf2c@virginia.edu>',
+            '"Guinevere Aguilar" <gva9b@eservices.virginia.edu>',
         ],
+        ['daf2c', 'gva9b'],
         subject,
         body,
         datetime.datetime.now(),
@@ -103,9 +103,10 @@ def step_impl(context, delta_time):
         'err8n@eservices.virginia.edu',
         [
             'frankbot@cloudmailin.com',
-            'lam2c@virginia.edu',
-            'rag9b@virginia.edu',
+            '"Davis Ferrell" <daf2c@virginia.edu>',
+            '"Guinevere Aguilar" <gva9b@eservices.virginia.edu>',
         ],
+        ['daf2c', 'gva9b'],
         'This is the subject',
         '',
         when,
@@ -120,9 +121,10 @@ def step_impl(context, userid):
         '{}@eservices.virginia.edu'.format(userid),
         [
             'frankbot@cloudmailin.com',
-            'lam2c@virginia.edu',
-            'rag9b@virginia.edu',
+            '"Davis Ferrell" <daf2c@virginia.edu>',
+            '"Guinevere Aguilar" <gva9b@eservices.virginia.edu>',
         ],
+        ['daf2c', 'gva9b'],
         'This is the subject',
         '',
         datetime.datetime.now(),
@@ -173,7 +175,7 @@ def step_impl(context, userid):
 
 @then('I should see the other attendees of the consultation')
 def step_impl(context):
-    tos = [email.split('@')[0] for email in context.post_email['to']]
+    tos = context.post_email['to']
     data = context.post_email['response'].data.decode('utf8')
     assert all(t in data for t in tos)
 
