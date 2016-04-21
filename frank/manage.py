@@ -1,7 +1,10 @@
 
 """The manager app."""
 
+
+import os
 import subprocess
+import tempfile
 
 from flask.ext.script import Manager
 from flask_migrate import MigrateCommand
@@ -60,6 +63,47 @@ def heroku_migrate(heroku_app=HEROKU_APP):
         'python', '-m', 'frank.manage', 'db', 'upgrade',
     ])
     subprocess.run(['heroku', 'restart', '--app', heroku_app])
+
+
+@manager.command
+def post_fixture(url=None, data_file=None):
+    """This posts the data from `data_file` to `url`."""
+    if url is None:
+        url = 'http://localhost:5000/calendar/invites/incoming'
+    temp_file = None
+    if data_file is None:
+        handle, temp_file = tempfile.mkstemp()
+        data_file = temp_file
+        os.write(
+            handle,
+            'envelope[from]=err8n@eservices.virginia.edu&\n'
+            'headers[Subject]=This is a subject&\n'
+            'envelope[recipients][0]=frank-bot@cloudmailin.com&\n'
+            'envelope[recipients][1]=lam2c@virginia.edu&\n'
+            'envelope[recipients][2]=rag9b@virginia.edu&\n'
+            'plain=When: Wednesday, April 20, 2016 4:00 PM-4:30 PM '
+            '(UTC-05:00) Eastern Time (US %26 Canada)%13'
+            'Where: An office%13'
+            '%13'
+            '*~*~*~*~*~*~*~*~*~*%13'
+            '%13'
+            '%13'.encode('utf8')
+        )
+        os.close(handle)
+
+    print(' '.join(
+        ['curl', '-v', '-X', 'POST', '--data-ascii', '@' + data_file,
+         # '--trace', '-',
+         url],
+    ))
+    subprocess.run(
+        ['curl', '-v', '-X', 'POST', '--data-ascii', '@' + data_file,
+         # '--trace', '-',
+         url],
+    )
+
+    if temp_file is not None:
+        os.remove(temp_file)
 
 
 manager.add_command('db', MigrateCommand)

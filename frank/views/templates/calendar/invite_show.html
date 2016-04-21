@@ -1,0 +1,40 @@
+<div>
+  <p id="title">{{ invitation.subject }}</p>
+  <p id="status">{% if invitation.status == -1 %}
+    <span class="warning">canceled</span>
+    {% elif invitation.status == 0 %}
+    <span class="pending">pending</span>
+    {% elif invitation.status == 1 %}
+    <span class="complete">complete</span>
+    {% endif %}
+  </p>
+
+  <blockquote id="body">
+    {{ invitation.body }}
+  </blockquote>
+
+  <p id="date">
+    {{ invitation.meeting_date | humanize('naturalday') }},
+    for {{ timedelta(minutes=invitation.duration) | humanize() }}
+  </p>
+
+  <div id="owner">
+    <header>Owner</header>
+    <a href="{{ url_for('.invite', invite_id=invitation.owner) }}">
+      {{ invitation.owner.userid }}
+    </a>
+  </div>
+
+  <div id="attendees">
+    <header>Attendees</header>
+    <ul>
+      {% for attendee in invitation.attendees %}
+      <li>
+        <a href="{{ url_for('.invite', invite_id=attendee) }}">
+          {{ attendee.userid }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
