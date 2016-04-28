@@ -19,8 +19,8 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from frank.views.home import homepage
-    from frank.views.calendar import calendar
+    from .views.home import homepage
+    from .calendar.views import calendar
     app.register_blueprint(homepage)
     app.register_blueprint(calendar, url_prefix='/calendar')
 

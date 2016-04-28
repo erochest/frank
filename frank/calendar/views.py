@@ -1,10 +1,12 @@
+"""Views for the calendar blueprint."""
+
+
 import datetime
 import email.utils
 import re
-import sys
 
 from flask import (
-    abort, current_app, json, render_template, request, Blueprint
+    abort, current_app, json, render_template, request, url_for, Blueprint
 )
 
 from frank.model import db, insert_or_create, Invitation, Profile
@@ -20,9 +22,9 @@ calendar = Blueprint('calendar', __name__, template_folder='templates')
 
 def profile(userid):
     """Create and return a profile that's been added to the session."""
-    p = Profile(userid=userid)
-    db.session.add(p)
-    return p
+    prof = Profile(userid=userid)
+    db.session.add(prof)
+    return prof
 
 
 def parse_date_time(line):
@@ -37,18 +39,19 @@ def parse_date_time(line):
     # 6: PM
     # 7: (UTC-05:00)
     parts = line.split()
+    parts[6] = parts[6].replace('.', '')
     parts[7] = parts[7].replace(':', '')
     parts2 = parts[5].split('-')
 
     d_str = ' '.join(parts[:5] + [parts2[0], parts[7]])
-    d = datetime.datetime.strptime(d_str, '%A, %B %d, %Y %I:%M %p (%Z%z)')
+    start = datetime.datetime.strptime(d_str, '%A, %B %d, %Y %I:%M %p (%Z%z)')
 
     dend = datetime.datetime.strptime(
         ' '.join(parts[:4] + [parts2[1]] + parts[6:8]),
-        '%A, %B %d, %Y %I:%M %p. (%Z%z)',
+        '%A, %B %d, %Y %I:%M %p (%Z%z)',
     )
 
-    return (d, dend - d)
+    return (start, dend - start)
 
 
 def add_profile(profile_index, userid):
@@ -59,7 +62,9 @@ def add_profile(profile_index, userid):
 def read_recipients(form, index):
     """This reads all the envelope[recipients][N] entries from the form."""
     attendees = []
-    to_emails = email.utils.getaddresses(form.get('headers[To]', '').split(','))
+    to_emails = email.utils.getaddresses(
+        form.get('headers[To]', '').split(','),
+        )
     for _, address in to_emails:
         userid = address.split('@')[0]
         attendees.append(add_profile(index, userid))
@@ -88,8 +93,8 @@ def read_attendee(attendee_set, index, text):
             userid = match.group('userid')
             if userid not in attendee_set:
                 attendee_set.add(userid)
-                profile = add_profile(index, userid)
-                attendees.append(profile)
+                prof = add_profile(index, userid)
+                attendees.append(prof)
 
     return attendees
 
@@ -132,7 +137,11 @@ def invites_incoming():
         db.session.add(invitation)
         db.session.commit()
 
-        return json.jsonify(status=1, id=invitation.id)
+        return json.jsonify(
+            status=1,
+            id=invitation.id,
+            url=url_for('.invite', invite_id=invitation.id),
+            )
 
 
 @calendar.route('/invites/<invite_id>')
@@ -142,19 +151,7 @@ def invite(invite_id):
     with current_app.app_context():
         invitation = Invitation.query.get_or_404(invite_id)
         return render_template(
-            'calendar/invite_show.html',
+            'invite_show.html',
             invitation=invitation,
             timedelta=datetime.timedelta,
-        )
-
-
-@calendar.route('/consult/<consult_id>')
-def consult(consult_id):
-    """The view page for a consult."""
-    consult_id = int(consult_id)
-    with current_app.app_context():
-        consult = Consult.query.get_or_404(consult_id)
-        return render_template(
-            'calendar/consult_show.html',
-            consult=consult,
         )
