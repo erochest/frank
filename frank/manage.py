@@ -81,7 +81,7 @@ def post_fixture(url=None, data_file=None):
             'headers[To]=frank-bot@cloudmailin.com,\n'
             'lam2c@virginia.edu,\n'
             'rag9b@virginia.edu&\n'
-            'plain=When: Wednesday, April 20, 2016 4:00 PM-4:30 PM '
+            'plain=When: Wednesday, Apri 20, 2016 4:00 PM-4:30 PM '
             '(UTC-05:00) Eastern Time (US %26 Canada)%13'
             'Where: An office%13'
             '%13'

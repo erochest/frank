@@ -4,12 +4,13 @@
 import datetime
 import email.utils
 import re
+import traceback
 
 from flask import (
     abort, current_app, json, render_template, request, url_for, Blueprint
 )
 
-from frank.model import db, insert_or_create, Invitation, Profile
+from frank.model import db, insert_or_create, ErrorReport, Invitation, Profile
 
 
 ATTENDEE_REGEXEN = [
@@ -106,36 +107,44 @@ def invites_incoming():
     ID.
     """
     incoming = request.form
-    import pprint
-    pprint.pprint(incoming)
     with current_app.app_context():
-        profiles = {p.userid: p for p in db.session.query(Profile)}
-        key = incoming['envelope[from]'].split('@')[0]
-        owner = insert_or_create(profiles, key, lambda: profile(key))
-        attendees = read_recipients(incoming, profiles)
-        attendee_set = set(attendee.userid for attendee in attendees)
-        subject = incoming['headers[Subject]']
-        body = incoming['plain']
-        meeting_date, duration = parse_when(body)
-        attendees += read_attendee(attendee_set, profiles, subject) \
-            + read_attendee(attendee_set, profiles, body)
-        if meeting_date < datetime.datetime.now(meeting_date.tzinfo):
-            status = 1
-        else:
-            status = 0
+        try:
+            profiles = {p.userid: p for p in db.session.query(Profile)}
+            key = incoming['envelope[from]'].split('@')[0]
+            owner = insert_or_create(profiles, key, lambda: profile(key))
+            attendees = read_recipients(incoming, profiles)
+            attendee_set = set(attendee.userid for attendee in attendees)
+            subject = incoming['headers[Subject]']
+            body = incoming['plain']
+            meeting_date, duration = parse_when(body)
+            attendees += read_attendee(attendee_set, profiles, subject) \
+                + read_attendee(attendee_set, profiles, body)
+            if meeting_date < datetime.datetime.now(meeting_date.tzinfo):
+                status = 1
+            else:
+                status = 0
 
-        invitation = Invitation(
-            subject=subject,
-            body=body,
-            status=status,
-            meeting_date=meeting_date,
-            duration=round(duration.total_seconds() / 60.0),
-            owner=owner,
-            attendees=attendees,
-        )
+            invitation = Invitation(
+                subject=subject,
+                body=body,
+                status=status,
+                meeting_date=meeting_date,
+                duration=round(duration.total_seconds() / 60.0),
+                owner=owner,
+                attendees=attendees,
+            )
 
-        db.session.add(invitation)
-        db.session.commit()
+            db.session.add(invitation)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            db.session.add(ErrorReport(
+                message='error creating invitation',
+                route='calendar /invites/incoming/',
+                stacktrace=traceback.format_exc(),
+            ))
+            db.session.commit()
+            raise
 
         return json.jsonify(
             status=1,

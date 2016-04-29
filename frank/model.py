@@ -53,3 +53,10 @@ class Profile(db.Model):
     invitations_owned = db.relationship('Invitation', back_populates='owner')
     invitations = db.relationship('Invitation', secondary=attendees,
                                   back_populates='attendees')
+
+
+class ErrorReport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String)
+    stacktrace = db.Column(db.String)
+    route = db.Column(db.String(75))
