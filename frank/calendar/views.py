@@ -13,7 +13,7 @@ from frank.model import db, insert_or_create, Invitation, Profile
 
 
 ATTENDEE_REGEXEN = [
-    re.compile(r'(?P<userid> [a-z]+ (?: \d [a-z]+ ) ) @', re.VERBOSE),
+    re.compile(r'(?P<userid> [a-z]+ (?: \d [a-z]+ )? ) @', re.VERBOSE),
 ]
 
 

@@ -78,9 +78,9 @@ def post_fixture(url=None, data_file=None):
             handle,
             'envelope[from]=err8n@eservices.virginia.edu&\n'
             'headers[Subject]=This is a subject&\n'
-            'envelope[recipients][0]=frank-bot@cloudmailin.com&\n'
-            'envelope[recipients][1]=lam2c@virginia.edu&\n'
-            'envelope[recipients][2]=rag9b@virginia.edu&\n'
+            'headers[To]=frank-bot@cloudmailin.com,\n'
+            'lam2c@virginia.edu,\n'
+            'rag9b@virginia.edu&\n'
             'plain=When: Wednesday, April 20, 2016 4:00 PM-4:30 PM '
             '(UTC-05:00) Eastern Time (US %26 Canada)%13'
             'Where: An office%13'
