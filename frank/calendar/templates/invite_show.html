@@ -22,20 +22,14 @@
 
   <div id="owner">
     <header>Owner</header>
-    <a href="{{ url_for('.invite', invite_id=invitation.owner.id) }}">
-      {{ invitation.owner.userid }}
-    </a>
+    {{ invitation.owner.userid }}
   </div>
 
   <div id="attendees">
     <header>Attendees</header>
     <ul>
       {% for attendee in invitation.attendees %}
-      <li>
-        <a href="{{ url_for('.invite', invite_id=attendee.id) }}">
-          {{ attendee.userid }}
-        </a>
-      </li>
+      <li>{{ attendee.userid }}</li>
       {% endfor %}
     </ul>
   </div>
