@@ -154,7 +154,8 @@ def step_impl(context):
 def step_impl(context):
     duration = context.post_email['duration']
     response = context.post_email['response']
-    assert '{} minute(s)'.format(duration / 60) in response.data.decode('utf8')
+    assert ('{} minute(s)'.format(round(duration.total_seconds() / 60.0))
+            in response.data.decode('utf8'))
 
 
 @then('I should see the date of the consultation')
