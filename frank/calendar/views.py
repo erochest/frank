@@ -107,6 +107,8 @@ def invites_incoming():
     ID.
     """
     incoming = request.form
+    import pprint
+    pprint.pprint(incoming)
     with current_app.app_context():
         try:
             profiles = {p.userid: p for p in db.session.query(Profile)}
