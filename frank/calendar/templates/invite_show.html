@@ -17,7 +17,7 @@
 
   <p id="date">
     {{ invitation.meeting_date | humanize('naturalday') }},
-    for {{ timedelta(minutes=invitation.duration) | humanize() }}
+    for {{ invitation.duration }} minute(s).
   </p>
 
   <div id="owner">
