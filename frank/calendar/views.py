@@ -109,7 +109,8 @@ def invites_incoming():
     incoming = request.form
     import pprint
     pprint.pprint(incoming)
-    for file_value in request.files.itervalues():
+    print('{} files'.format(len(request.files)))
+    for file_value in request.files.values():
         print(file_value.filename)
         print(file_value.read())
         print()
