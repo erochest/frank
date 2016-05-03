@@ -109,6 +109,11 @@ def invites_incoming():
     incoming = request.form
     import pprint
     pprint.pprint(incoming)
+    for file_value in request.files.itervalues():
+        print(file_value.filename)
+        print(file_value.read())
+        print()
+
     with current_app.app_context():
         try:
             profiles = {p.userid: p for p in db.session.query(Profile)}
