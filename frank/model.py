@@ -18,10 +18,10 @@ def insert_or_create(index, key, fn):
     return obj
 
 
-attendees = db.Table(
+invitation_attendees = db.Table(
     'attendees',
     db.Column('invitation_id', db.Integer, db.ForeignKey('invitation.id')),
-    db.Column('profile.id', db.Integer, db.ForeignKey('profile.id')),
+    db.Column('profile_id', db.Integer, db.ForeignKey('profile.id')),
 )
 
 
@@ -42,8 +42,27 @@ class Invitation(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('profile.id'))
     owner = db.relationship('Profile', back_populates='invitations_owned')
 
-    attendees = db.relationship('Profile', secondary=attendees,
+    attendees = db.relationship('Profile', secondary=invitation_attendees,
                                 back_populates='invitations')
+
+
+consult_attendees = db.Table(
+    'consult_attendees',
+    db.Column('consult_id', db.Integer, db.ForeignKey('consult.id')),
+    db.Column('profile_id', db.Integer, db.ForeignKey('profile.id')),
+)
+
+
+class Consult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_invitation = db.Column(db.Integer, db.ForeignKey('invitation.id'))
+
+    meeting_date = db.Column(db.DateTime(), nullable=False)
+    duration = db.Column(db.Integer)
+    attendees = db.relationship('Profile', secondary=consult_attendees,
+                                back_populates='consults')
+
+    notes = db.Text()
 
 
 class Profile(db.Model):
@@ -51,8 +70,10 @@ class Profile(db.Model):
     userid = db.Column(db.String(32), unique=True, nullable=False)
 
     invitations_owned = db.relationship('Invitation', back_populates='owner')
-    invitations = db.relationship('Invitation', secondary=attendees,
+    invitations = db.relationship('Invitation', secondary=invitation_attendees,
                                   back_populates='attendees')
+    consults = db.relationship('Consult', secondary=consult_attendees,
+                               back_populates='attendees')
 
 
 class ErrorReport(db.Model):

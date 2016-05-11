@@ -6,27 +6,37 @@ from behave import *
 import humanize
 
 
+def format_when(datetime, duration):
+    """\
+    This takes a meeting's starting time and duration and returns its formatted
+    When.
+
+    """
+
+    formatted = '{} {}-{}. (UTC-05:00) Eastern Time (US & Canada)'.format(
+        datetime.strftime('%A, %B %d, %Y'),
+        datetime.strftime('%I:%M %p'),
+        (datetime + duration).strftime('%I:%M %p'),
+    )
+    return (formatted, datetime, duration)
+
+
 def post_email(
-    context, from_email, to_emails, userids, subject, body, datetime, duration
+    context, from_email, to_emails, userids, subject, body, when_phrase
 ):
+    (when_formatted, datetime, duration) = when_phrase
     data = {
         'envelope[from]': from_email,
         'headers[Subject]': subject,
         'headers[To]': ', '.join(to_emails),
-        'plain': 'When: {} {}-{}. '
-                 '(UTC-05:00) Eastern Time (US & Canada)\n'
+        'plain': 'When: {}\n'
                  'Where: Elsewhere\n'
                  '\n'
                  '*~*~*~*~*~*~*~*~*~*\n'
                  '\n'
                  '{}\n'
                  '\n'
-                 '\n'.format(
-                     datetime.strftime('%A, %B %d, %Y'),
-                     datetime.strftime('%I:%M %p'),
-                     (datetime + duration).strftime('%I:%M %p'),
-                     body,
-                 ),
+                 '\n'.format(when_formatted, body),
         'reply_plain': '',
     }
     context.post_email = {
@@ -46,6 +56,11 @@ def post_email(
         )
 
 
+@given('Frank is alive')
+def step_impl(context):
+    assert context.client
+
+
 @when('I send him a meeting invitation')
 def step_impl(context):
     post_email(
@@ -59,8 +74,7 @@ def step_impl(context):
         ['daf2c', 'gva9b'],
         'This is the subject',
         '',
-        datetime.datetime.now(),
-        datetime.timedelta(minutes=30),
+        format_when(datetime.datetime.now(), datetime.timedelta(minutes=30)),
     )
 
 
@@ -84,8 +98,7 @@ def step_impl(context, userid, location):
         ['daf2c', 'gva9b'],
         subject,
         body,
-        datetime.datetime.now(),
-        datetime.timedelta(minutes=30),
+        format_when(datetime.datetime.now(), datetime.timedelta(minutes=30)),
     )
 
 
@@ -109,8 +122,7 @@ def step_impl(context, delta_time):
         ['daf2c', 'gva9b'],
         'This is the subject',
         '',
-        when,
-        datetime.timedelta(minutes=30),
+        format_when(when, datetime.timedelta(minutes=30)),
     )
 
 
@@ -127,8 +139,7 @@ def step_impl(context, userid):
         ['daf2c', 'gva9b'],
         'This is the subject',
         '',
-        datetime.datetime.now(),
-        datetime.timedelta(minutes=30),
+        format_when(datetime.datetime.now(), datetime.timedelta(minutes=30)),
     )
 
 
@@ -137,9 +148,44 @@ def step_impl(context):
     data = json.loads(context.post_email['response'].data)
     url = '/calendar/invites/{id}'.format(**data)
     response = context.client.get(url)
-    context.post_email['response'] = response
     assert response.status_code == 200, '<{}> status = [{}] {}'.format(
         url, response.status_code, response.status,
+    )
+    context.post_email['response'] = response
+    context.post_email['soup'] = BeautifulSoup(response.data, 'html.parser')
+
+
+@when('I send him an invitation for a meeting that meets {meeting_time} '
+      'at {start_time} for {duration}, starting {start_date}')
+def step_impl(context, meeting_time, start_time, duration, start_date):
+    (m, d, y) = [int(part.strip('.')) for part in start_date.split('/')]
+    strp = '{month:02}/{day:02}/{year:04}. {start_time}'.format(
+        month=m, day=d, year=y, start_time=start_time,
+    )
+    start_time_obj = datetime.datetime.strptime(
+        strp,
+        '%m/%d/%Y. %I:%M %p',
+        )
+    duration_minutes = datetime.timedelta(minutes=int(duration.split()[0]))
+    when_phrase = ('Occurs {} from {} to {} effective {}. '
+                   '(UTF-05:00) Eastern Time (US & Canada)').format(
+                    meeting_time,
+                    start_time,
+                    (start_time_obj + duration_minutes).strftime('%I:%M %p')
+                                                       .lstrip('0'),
+                    start_date,
+                   )
+    post_email(
+        context,
+        'err8n@eservices.virginia.edu',
+        [
+            'frankbot@cloudmailin.com',
+            '"Guinevere Aguilar" <gva9b@eservices.virginia.edu>',
+        ],
+        ['gva9b'],
+        'This is the subject',
+        '',
+        (when_phrase, start_time_obj, duration_minutes),
     )
 
 
@@ -167,7 +213,7 @@ def step_impl(context):
 
 @then('I should see {userid} as the meeting owner')
 def step_impl(context, userid):
-    soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
+    soup = context.post_email['soup']
     strings = []
     for consultant in soup.select('#owner'):
         strings += consultant.strings
@@ -183,7 +229,7 @@ def step_impl(context):
 
 @then('I should see {userid} as an attendee')
 def step_impl(context, userid):
-    soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
+    soup = context.post_email['soup']
     strings = []
     for attendees in soup.select('#attendees'):
         strings += attendees.strings
@@ -192,7 +238,7 @@ def step_impl(context, userid):
 
 @then('I should not see {userid} as an attendee')
 def step_impl(context, userid):
-    soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
+    soup = context.post_email['soup']
     strings = []
     for attendees in soup.select('#attendees'):
         strings += attendees.strings
@@ -201,8 +247,26 @@ def step_impl(context, userid):
 
 @then('I should see that the invitation is {status}')
 def step_impl(context, status):
-    soup = BeautifulSoup(context.post_email['response'].data, 'html.parser')
+    soup = context.post_email['soup']
     strings = []
     for status_tag in soup.select('#status'):
         strings += status_tag.strings
     assert status in ' '.join(strings)
+
+
+@then('I should see a link to a consultation')
+def step_impl(context):
+    soup = context.post_email['soup']
+    assert 'Consult' in {a.string for string in soup.select('a')}
+
+
+@then('I should not see a link to a consultation')
+def step_impl(context):
+    soup = context.post_email['soup']
+    assert 'Consult' not in {a.string for string in soup.select('a')}
+
+
+@then('I should see it marked as recurring')
+def step_impl(context):
+    raise NotImplementedError('STEP: Then I should see it marked as recurring')
+    soup = context.post_email['soup']

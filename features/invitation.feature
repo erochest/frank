@@ -1,5 +1,6 @@
 Feature: As a SLab staff-person
   I want to be able to track consultations that are on my calendar
+  So that I can be more aware of my work
 
   Scenario: Identifies the sender of the invitation
     Given Frank is alive
@@ -57,12 +58,27 @@ Feature: As a SLab staff-person
     When I send him a meeting invitation for yesterday
     And I visit the invitation's page
     Then I should see that the invitation is complete
+    And I should see a link to a consultation
 
   Scenario: Identifies meetings that are in the future
     Given Frank is alive
     When I send him a meeting invitation for tomorrow
     And I visit the invitation's page
     Then I should see that the invitation is pending
+    And I should not see a link to a consultation
+
+  Scenario Outline: Identifies recurring meetings
+    Given Frank is alive
+    When I send him an invitation for a meeting that meets <recurring> at <start_time> for <duration>, starting <start_date>
+    And I visit the invitation's page
+    Then I should see it marked as recurring
+
+  Examples: Recurring
+      | recurring                          | start_time | duration   | start_date |
+      | every Friday                       | 4:00 PM    | 30 minutes | 4/29/2016  |
+      | every day                          | 2:00 PM    | 30 minutes | 5/10/2016  |
+      | every month on day 10 of the month | 2:30 PM    | 30 minutes | 5/10/2016  |
+      | every May 10                       | 3:00 PM    | 60 minutes | 5/10/2016  |
 
 # TODO: recurring appointments
 # TODO: a job that creates meetings for the previous day
