@@ -48,11 +48,18 @@ def deploy(branch=None, to='master', keep=False, heroku_app=HEROKU_APP):
         subprocess.run(['git', 'branch', '--delete', branch])
     subprocess.run(['git', 'push'])
 
-    heroku_migrate(heroku_app)
+    migrate(heroku_app)
 
 
-@manager.command
-def heroku_migrate(heroku_app=HEROKU_APP):
+def heroku_opts(app, **kwargs):
+    pass
+
+
+heroku = Manager(usage='Heroku-related commands.')
+
+
+@heroku.command
+def migrate(heroku_app=HEROKU_APP):
     """This migrates the database on the server and restarts the app."""
     subprocess.run([
         'heroku', 'run',
@@ -63,6 +70,26 @@ def heroku_migrate(heroku_app=HEROKU_APP):
         'python', '-m', 'frank.manage', 'db', 'upgrade',
     ])
     subprocess.run(['heroku', 'restart', '--app', heroku_app])
+
+
+@heroku.command
+def clear_errors(heroku_app=HEROKU_APP):
+    """Clear the errors from the Heroku database."""
+    subprocess.run(
+        ['heroku', 'pg:psql', '--app', heroku_app],
+        input=b'SELECT COUNT(*) FROM error_report;',
+        )
+    subprocess.run(
+        ['heroku', 'pg:psql', '--app', heroku_app],
+        input=b'DELETE FROM error_report;',
+        )
+    subprocess.run(
+        ['heroku', 'pg:psql', '--app', heroku_app],
+        input=b'SELECT COUNT(*) FROM error_report;',
+        )
+
+
+manager.add_command('heroku', heroku)
 
 
 @manager.command
