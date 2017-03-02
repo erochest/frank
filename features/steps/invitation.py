@@ -268,5 +268,5 @@ def step_impl(context):
 
 @then('I should see it marked as recurring')
 def step_impl(context):
-    raise NotImplementedError('STEP: Then I should see it marked as recurring')
     soup = context.post_email['soup']
+    assert soup.find(id='recurring')

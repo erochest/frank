@@ -20,6 +20,12 @@
     for {{ invitation.duration }} minute(s).
   </p>
 
+  {% if invitation.recurring %}
+  <p id="recurring">
+    Recurring
+  </p>
+  {% endif %}
+
   <div id="owner">
     <header>Owner</header>
     {{ invitation.owner.userid }}
