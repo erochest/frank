@@ -8,7 +8,7 @@ Flask-Humanize==0.3.0
 Flask-Migrate==1.8.0
 Flask-Script==2.0.5
 Flask-SQLAlchemy==2.1
-gunicorn==19.4.5
+gunicorn==19.5.0
 humanize==0.5.1
 icalendar==3.9.2
 itsdangerous==0.24
